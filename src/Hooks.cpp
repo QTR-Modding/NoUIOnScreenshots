@@ -62,7 +62,7 @@ int64_t Hooks::RenderUIHook::thunk(int64_t gMenuManager) {
     while (!queue.empty()) {
         auto item = queue.back();
         Graphics::SaveCurrentFrame(CharToWChar(item.a_filePath).c_str(), item.a_textureFileFormat);
-        delete item.a_filePath;
+        free((void*)item.a_filePath);
         queue.pop_back();
     }
     return originalFunction(gMenuManager);
