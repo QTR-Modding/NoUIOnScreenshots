@@ -11,9 +11,9 @@ void Configuration::Load() {
     file >> j;
 
 
-    if (j.contains("EnableUIOnScreenShots")) {
-        EnableUIOnScreenShots = j["EnableUIOnScreenShots"];
-        logger::info("EnableUIOnScreenShots: {}", EnableUIOnScreenShots);
+    if (j.contains("HideUIOnScreenShots")) {
+        HideUIOnScreenShots = j["HideUIOnScreenShots"];
+        logger::info("HideUIOnScreenShots: {}", HideUIOnScreenShots);
     }
 
 }
@@ -22,7 +22,7 @@ void Configuration::Save() {
     std::filesystem::create_directories(".\\Data\\SKSE\\Plugins");
 
     nlohmann::json j;
-    j["EnableUIOnScreenShots"] = EnableUIOnScreenShots;
+    j["HideUIOnScreenShots"] = HideUIOnScreenShots;
 
     std::ofstream file(".\\Data\\SKSE\\Plugins\\NoUIOnScreenshots.json");
     if (!file.is_open()) {

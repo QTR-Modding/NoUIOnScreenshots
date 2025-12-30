@@ -11,7 +11,7 @@ void UI::Register() {
 
 
 void __stdcall UI::Main::Render() {
-    if (ImGuiMCPComponents::ToggleButton(Translations::Get("MCP.EnableUIOnScreenShots"), &Configuration::EnableUIOnScreenShots)) {
+    if (ImGuiMCPComponents::ToggleButton(Translations::Get("MCP.HideUIOnScreenShots"), &Configuration::HideUIOnScreenShots)) {
         Configuration::Save();
     }
 }

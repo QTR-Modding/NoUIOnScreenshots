@@ -13,10 +13,10 @@ void Hooks::TakeScreenshot::Install() {
 }
 
 void Hooks::TakeScreenshot::thunk(RE::BSGraphics::Renderer* renderer, RE::RENDER_TARGET a_renderTarget, const char* a_filePath, RE::BSGraphics::TextureFileFormat a_textureFileFormat) {
-    if (Configuration::EnableUIOnScreenShots) {
-        originalFunction(renderer, a_renderTarget, a_filePath, a_textureFileFormat);    
-    } else {
+    if (Configuration::HideUIOnScreenShots) {
         queue.push_back({strdup(a_filePath), a_textureFileFormat});
+    } else {
+        originalFunction(renderer, a_renderTarget, a_filePath, a_textureFileFormat);    
     }
 }
 
