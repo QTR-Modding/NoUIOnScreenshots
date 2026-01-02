@@ -45,12 +45,50 @@ ID3D11ShaderResourceView* Graphics::FetchTextureBuffer() {
     }
     return result;
 }
-bool Graphics::SaveCurrentFrame(const wchar_t* filename, RE::BSGraphics::TextureFileFormat format) {
 
-    std::filesystem::path path(filename);
+std::wstring SanitizeFilename(const std::wstring& in) {
+    std::wstring out = in;
+    for (auto& c : out) {
+        switch (c) {
+            case L'<': c = L'('; break;
+            case L'>': c = L')'; break;
+            case L':': c = L';'; break;
+            case L'"': c = L'\''; break;
+            case L'|': c = L'!'; break;
+            case L'?': c = L'~'; break;
+            case L'*': c = L'x'; break;
+        }
+    }
+    return out;
+}
+
+std::filesystem::path MakeUniquePath(const std::filesystem::path& original) {
+    if (!std::filesystem::exists(original)) {
+        return original;
+    }
+
+    auto parent = original.parent_path();
+    auto stem = original.stem().wstring();
+    auto ext = original.extension().wstring();
+
+    for (int i = 1;; ++i) {
+        std::filesystem::path candidate = parent / (stem + L" - " + std::to_wstring(i) + ext);
+        if (!std::filesystem::exists(candidate)) {
+            return candidate;
+        }
+    }
+}
+
+bool Graphics::SaveCurrentFrame(const wchar_t* filename, RE::BSGraphics::TextureFileFormat format) {
+    auto cleanName = SanitizeFilename(filename);
+    std::filesystem::path path(cleanName);
+
     if (path.has_parent_path()) {
         std::filesystem::create_directories(path.parent_path());
     }
+
+    path = MakeUniquePath(path);
+    cleanName = path.wstring();
 
     auto srv = FetchTextureBuffer();
     if (!srv) {
@@ -68,7 +106,7 @@ bool Graphics::SaveCurrentFrame(const wchar_t* filename, RE::BSGraphics::Texture
     HRESULT hr = E_FAIL;
 
     if (format == RE::BSGraphics::TextureFileFormat::kDDS) {
-        hr = DirectX::SaveToDDSFile(*image.GetImage(0, 0, 0), DirectX::DDS_FLAGS_NONE, filename);
+        hr = DirectX::SaveToDDSFile(*image.GetImage(0, 0, 0), DirectX::DDS_FLAGS_NONE, cleanName.c_str());
     } else {
         GUID container = GUID_ContainerFormatPng;
 
@@ -80,7 +118,7 @@ bool Graphics::SaveCurrentFrame(const wchar_t* filename, RE::BSGraphics::Texture
                 container = GUID_ContainerFormatJpeg;
                 break;
             case RE::BSGraphics::TextureFileFormat::kTGA:
-                hr = DirectX::SaveToTGAFile(*image.GetImage(0, 0, 0), filename);
+                hr = DirectX::SaveToTGAFile(*image.GetImage(0, 0, 0), cleanName.c_str());
                 resource->Release();
                 return SUCCEEDED(hr);
             case RE::BSGraphics::TextureFileFormat::kPNG:
@@ -90,7 +128,7 @@ bool Graphics::SaveCurrentFrame(const wchar_t* filename, RE::BSGraphics::Texture
                 break;
         }
 
-        hr = DirectX::SaveToWICFile(*image.GetImage(0, 0, 0), DirectX::WIC_FLAGS_FORCE_SRGB, container, filename);
+        hr = DirectX::SaveToWICFile(*image.GetImage(0, 0, 0), DirectX::WIC_FLAGS_FORCE_SRGB, container, cleanName.c_str());
     }
 
     resource->Release();
